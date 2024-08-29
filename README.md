@@ -1,2 +1,3 @@
-# 一个不起眼的shell工具箱🧰
-功能有短信轰炸  通杀bzip gzip gzexe base64 rc4加密以及外挂内核用的玉龙加密脱壳，还有shc管道等，对比有点不起眼，爱发电:https://afdian.com/a/SethAionword
+# 一个不起眼的代码库🧰
+有Python c语言 shell等编程语言这些代码脚本
+进行开源或搬运，毕竟开源是其次，学习动力才是珍宝！爱发电:https://afdian.com/a/SethAionword
