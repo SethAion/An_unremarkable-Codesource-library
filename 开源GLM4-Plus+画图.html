@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 智能助手</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #00a1ff;
+            --secondary-color: #4CAF50;
+            --background-color: #f0f2f5;
+            --text-color: #333;
+            --light-text-color: #888;
+            --border-color: #ddd;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 40px);
+        }
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .tab-container {
+            display: flex;
+            background-color: #f1f1f1;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        .content-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        .chat-container, .draw-container {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+        .active-content {
+            display: flex;
+        }
+        #chatbox, #imageContainer {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .input-area {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        #userInput, #promptInput {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 16px;
+            resize: none;
+        }
+        .button-group {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        button:hover {
+            background-color: #0081cc;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        #modelSelect {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            font-size: 16px;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            max-width: 80%;
+            position: relative;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .user {
+            background-color: #e6f3ff;
+            margin-left: auto;
+        }
+        .assistant {
+            background-color: #f0f0f0;
+        }
+        .timestamp {
+            font-size: 12px;
+            color: var(--light-text-color);
+            margin-top: 5px;
+        }
+        .message-actions {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            display: none;
+        }
+        .message:hover .message-actions {
+            display: block;
+        }
+        .message-actions button {
+            background: none;
+            border: none;
+            color: var(--light-text-color);
+            cursor: pointer;
+            padding: 2px;
+        }
+        .retry-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        img {
+            max-width: 100%;
+            border-radius: 5px;
+            margin-top: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        img:hover {
+            transform: scale(1.05);
+        }
+        #generateBtn {
+            background-color: var(--secondary-color);
+        }
+        #loading {
+            text-align: center;
+            margin-top: 20px;
+            font-style: italic;
+            color: var(--light-text-color);
+        }
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .dark-mode {
+            --background-color: #1a1a1a;
+            --text-color: #f0f0f0;
+            --light-text-color: #aaa;
+            --border-color: #444;
+        }
+        .dark-mode .container {
+            background-color: #2a2a2a;
+        }
+        .dark-mode .input-area {
+            background-color: #333;
+        }
+        .dark-mode .user {
+            background-color: #1e3a5f;
+        }
+        .dark-mode .assistant {
+            background-color: #3a3a3a;
+        }
+        .emoji-picker {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 5px;
+            display: none;
+        }
+        .emoji-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .voice-input-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI 智能助手</h1>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <i class="fas fa-moon"></i>
+            </button>
+        </header>
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('chat')">聊天</div>
+            <div class="tab" onclick="switchTab('draw')">画图</div>
+        </div>
+        <div class="content-container">
+            <div class="chat-container active-content">
+                <div id="chatbox"></div>
+                <div class="input-area">
+                    <textarea id="userInput" placeholder="输入您的消息..." rows="3"></textarea>
+                    <div class="button-group">
+                        <select id="modelSelect">
+                            <option value="glm-4-plus">GLM-4-Plus (默认)</option>
+                            <option value="glm-4v-plus">GLM-4V-Plus</option>
+                        </select>
+                        <button id="sendBtn">发送</button>
+                        <button id="clearBtn">清除对话</button>
+                        <button class="emoji-btn" onclick="toggleEmojiPicker()">😊</button>
+                        <button class="voice-input-btn" onclick="startVoiceInput()">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                    </div>
+                    <div class="emoji-picker" id="emojiPicker"></div>
+                </div>
+            </div>
+            <div class="draw-container">
+                <div id="imageContainer"></div>
+                <div class="input-area">
+                    <textarea id="promptInput" placeholder="描述您想要生成的图片..." rows="3"></textarea>
+                    <div class="button-group">
+                        <button id="generateBtn">生成图片</button>
+                    </div>
+                    <div id="loading" style="display: none;">正在生成图片，请稍候...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = '8aa8da781b2c92c9d2e58d7cf12048cf.CsTLcbkBeLqzjZYA';
+        const chatbox = document.getElementById('chatbox');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const modelSelect = document.getElementById('modelSelect');
+        const promptInput = document.getElementById('promptInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const loading = document.getElementById('loading');
+        const imageContainer = document.getElementById('imageContainer');
+
+        sendBtn.addEventListener('click', sendMessage);
+        clearBtn.addEventListener('click', clearChat);
+        generateBtn.addEventListener('click', generateImage);
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message) {
+                appendMessage('user', message);
+                userInput.value = '';
+                const selectedModel = modelSelect.value;
+                sendChatMessage(message, selectedModel);
+            }
+        }
+
+        function appendMessage(sender, content, isRetry = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender);
+            
+            const textSpan = document.createElement('span');
+            messageDiv.appendChild(textSpan);
+
+            const timestamp = document.createElement('div');
+            timestamp.classList.add('timestamp');
+            timestamp.textContent = new Date().toLocaleTimeString();
+            messageDiv.appendChild(timestamp);
+
+            if (sender === 'user') {
+                const actionsDiv = document.createElement('div');
+                actionsDiv.classList.add('message-actions');
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                deleteBtn.onclick = () => messageDiv.remove();
+                actionsDiv.appendChild(deleteBtn);
+
+                if (!isRetry) {
+                    const retryBtn = document.createElement('button');
+                    retryBtn.classList.add('retry-btn');
+                    retryBtn.textContent = '重试';
+                    retryBtn.onclick = () => retryMessage(content);
+                    messageDiv.appendChild(retryBtn);
+                }
+
+                messageDiv.appendChild(actionsDiv);
+            }
+
+            chatbox.appendChild(messageDiv);
+            typeWriter(textSpan, content);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        function typeWriter(element, text, index = 0) {
+            if (index < text.length) {
+                element.textContent += text.charAt(index);
+                index++;
+                setTimeout(() => typeWriter(element, text, index), 10);
+            }
+        }
+
+        function sendChatMessage(message, model) {
+            fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [{ role: "user", content: message }]
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const reply = data.choices[0].message.content;
+                appendMessage('assistant', reply);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                appendMessage('assistant', '抱歉，发生了错误。');
+            });
+        }
+
+        function clearChat() {
+            chatbox.innerHTML = '';
+        }
+
+        function retryMessage(content) {
+            appendMessage('user', content, true);
+            sendChatMessage(content, modelSelect.value);
+        }
+
+        function generateImage() {
+            const prompt = promptInput.value.trim();
+            if (prompt) {
+                loading.style.display = 'block';
+                imageContainer.innerHTML = '';
+
+                fetch('https://open.bigmodel.cn/api/paas/v4/images/generations', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: "cogview-3-plus",
+                        prompt: prompt
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const imageUrl = data.data[0].url;
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.onload = () => {
+                        imageContainer.appendChild(img);
+                        loading.style.display = 'none';
+                    };
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loading.textContent = '抱歉，发生了错误。';
+                    loading.style.display = 'none';
+                });
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.chat-container, .draw-container').forEach(c => c.classList.remove('active-content'));
+            
+            if (tab === 'chat') {
+                document.querySelector('.tab:first-child').classList.add('active');
+                document.querySelector('.chat-container').classList.add('active-content');
+            } else {
+                document.querySelector('.tab:last-child').classList.add('active');
+                document.querySelector('.draw-container').classList.add('active-content');
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const themeIcon = document.querySelector('.theme-toggle i');
+            themeIcon.classList.toggle('fa-moon');
+            themeIcon.classList.toggle('fa-sun');
+        }
+
+        function toggleEmojiPicker() {
+            const emojiPicker = document.getElementById('emojiPicker');
+            emojiPicker.style.display = emojiPicker.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function insertEmoji(emoji) {
+            userInput.value += emoji;
+            toggleEmojiPicker();
+        }
+
+        // 初始化表情选择器
+        const emojis = ['😊', '😂', '🤔', '👍', '❤️', '🎉', '🌈', '🍕', '🐱', '🌸'];
+        const emojiPicker = document.getElementById('emojiPicker');
+        emojis.forEach(emoji => {
+            const emojiBtn = document.createElement('button');
+            emojiBtn.textContent = emoji;
+            emojiBtn.onclick = () => insertEmoji(emoji);
+            emojiPicker.appendChild(emojiBtn);
+        });
+
+        function startVoiceInput() {
+            if ('webkitSpeechRecognition' in window) {
+                const recognition = new webkitSpeechRecognition();
+                recognition.lang = 'zh-CN';
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    userInput.value += transcript;
+                };
+                recognition.start();
+            } else {
+                alert('您的浏览器不支持语音输入功能。');
+            }
+        }
+    </script>
+</body>
+</html>
